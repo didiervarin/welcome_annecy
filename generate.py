@@ -283,17 +283,16 @@ def meteo_html(meteo, lac):
         lac_html = '<div class="lac-block lac-na"><span class="lac-icon">🏊</span><span class="lac-label">Température du lac</span><span class="lac-temp">N/D</span></div>'
 
     return f"""
-    <div class="meteo-main">
-      <div class="meteo-icon">{meteo['icon']}</div>
-      <div class="meteo-temp-block">
-        <div class="meteo-temp">{meteo['temp']}<sup>°C</sup></div>
-        <div class="meteo-desc">{meteo['desc']}</div>
-        <div class="meteo-feels">Ressenti {meteo['feels']}°</div>
-      </div>
-      <div class="meteo-minmax">
+    <div class="meteo-grid">
+      <div class="meteo-cell meteo-icon">{meteo['icon']}</div>
+      <div class="meteo-cell meteo-temp"><span>{meteo['temp']}</span><sup>°C</sup></div>
+      <div class="meteo-cell meteo-rain-val"><span>{meteo['rain_pct']}</span><sup>%</sup></div>
+
+      <div class="meteo-cell meteo-lieu">📍 Annecy</div>
+      <div class="meteo-cell meteo-desc">{meteo['desc']}</div>
+      <div class="meteo-cell meteo-minmax">
         <div class="temp-max">▲ {meteo['tmax']}°</div>
         <div class="temp-min">▼ {meteo['tmin']}°</div>
-        <div class="meteo-rain">🌧 {meteo['rain_pct']}%</div>
       </div>
     </div>
     {lac_html}"""
@@ -398,29 +397,40 @@ def build_html(meteo, lac, news, cinemas):
     .card-label::after {{ content:''; flex:1; height:1px; background:var(--border) }}
 
     /* ── Météo ── */
-    .meteo-main {{
-      display:flex; align-items:center; gap:14px;
+    .meteo-grid {{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      align-items:center;
+      row-gap:8px;
       margin-bottom:12px;
     }}
-    .meteo-icon {{ font-size:48px; line-height:1; flex-shrink:0 }}
-    .meteo-temp-block {{ flex:1 }}
+    .meteo-cell {{ min-width:0 }}
+    .meteo-icon {{ font-size:44px; line-height:1; text-align:center }}
     .meteo-temp {{
-      font-family:'DM Serif Display',serif; font-size:48px; line-height:1;
+      font-family:'DM Serif Display',serif; font-size:44px; line-height:1;
+      text-align:center;
     }}
     .meteo-temp sup {{
-      font-size:20px; vertical-align:super;
+      font-size:18px; vertical-align:super;
       color:var(--muted); font-family:'Syne',sans-serif; font-weight:400;
     }}
-    .meteo-desc {{ font-size:13px; font-weight:600; margin-top:4px; color:var(--accent) }}
-    .meteo-feels {{ font-size:11px; color:var(--muted); margin-top:2px }}
+    .meteo-rain-val {{
+      font-family:'DM Serif Display',serif; font-size:44px; line-height:1;
+      color:var(--blue); text-align:center;
+    }}
+    .meteo-rain-val sup {{
+      font-size:18px; vertical-align:super;
+      color:var(--muted); font-family:'Syne',sans-serif; font-weight:400;
+    }}
+    .meteo-lieu {{ font-size:13px; font-weight:600; letter-spacing:.03em; text-align:center }}
+    .meteo-desc {{ font-size:13px; font-weight:600; color:var(--accent); text-align:center }}
     .meteo-minmax {{
-      display:flex; flex-direction:column; gap:4px;
-      font-family:'DM Mono',monospace; font-size:14px;
-      align-items:flex-end; flex-shrink:0;
+      display:flex; flex-direction:column; gap:2px;
+      font-family:'DM Mono',monospace; font-size:15px;
+      align-items:center;
     }}
     .temp-max {{ color:var(--orange); font-weight:600 }}
     .temp-min {{ color:var(--accent2); font-weight:600 }}
-    .meteo-rain {{ color:var(--blue); font-size:12px }}
 
     .lac-block {{
       display:flex; align-items:center; gap:8px;
