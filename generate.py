@@ -166,125 +166,104 @@ def get_news():
         print(f"  Erreur news: {e}")
         return {"ok": False, "articles": []}
 
-# ── Cinémas Annecy (Allocine scraping) ───────────────────────────────────────
+# ── Cinémas Annecy (jds.fr - L'Officiel des Spectacles) ──────────────────────
+# Pages "salle" jds.fr pour les deux cinémas d'Annecy.
+JDS_CINEMAS = [
+    {"name": "Pathé Annecy",     "url": "https://www.jds.fr/annecy/cinema-sorties-films-horaires/cinema-pathe-27765_L"},
+    {"name": "Mégarama Annecy",  "url": "https://www.jds.fr/annecy/cinema-sorties-films-horaires/cinema-megarama-annecy-21446_L"},
+]
+
+# Mots/segments à exclure car ce sont des spectacles, concerts ou liens de nav,
+# pas des films de cinéma classique.
+_EXCLURE_CINEMA = [
+    "candlelight", "spectacle", "concert", "tournée", "humour", "cirque",
+    "danse", "ballet", "chanson française", "rock", "pop / folk", "jazz",
+    "spectacles |", "best of", "tribute", "hommage", "casse-noisette",
+    "festival hors pistes", "arcadium", "billetterie", "newsletter",
+    "publier un événement", "acheter des billets", "site internet",
+    "mentions légales", "à ne pas manquer", "lieux à proximité",
+    "idées sorties", "fête du lac", "bts au stade", "jenifer",
+]
+
+def _titre_valide_film(titre):
+    t = titre.strip()
+    if len(t) < 2 or len(t) > 80:
+        return False
+    tl = t.lower()
+    if any(mot in tl for mot in _EXCLURE_CINEMA):
+        return False
+    return True
+
 def get_cinemas():
     """
-    Scrape Allocine pour les séances du jour à Annecy.
-    URL: https://www.allocine.fr/seance/ville-15106/
+    Scrape les pages jds.fr (L'Officiel des Spectacles) des cinémas d'Annecy
+    pour récupérer les films actuellement à l'affiche.
     """
+    cinemas = []
+    for c in JDS_CINEMAS:
+        try:
+            raw = fetch_html(c["url"])
+            print(f"  Cinémas: {c['name']} — page reçue ({len(raw)} chars)")
+
+            films = []
+            seen = set()
+
+            # Sur jds.fr, les films/séances apparaissent comme liens markdown
+            # du type [Titre](url) dans le bloc "Au programme" / "Films à l'affiche".
+            # On cible les liens vers des fiches /spectacles/ ou /films/ proches du nom du cinéma.
+            for m in re.finditer(r'\[([^\[\]]{2,80})\]\(https://www\.jds\.fr/annecy/(?:spectacles|cinema)[^\)]*\)', raw):
+                titre = m.group(1).strip()
+                # Nettoyer prefixe "Spectacles | "
+                titre = re.sub(r'^(Spectacles|Cinéma)\s*\|\s*', '', titre, flags=re.IGNORECASE).strip()
+                if titre and titre not in seen and _titre_valide_film(titre):
+                    seen.add(titre)
+                    films.append(titre)
+
+            if films:
+                cinemas.append({"cinema": c["name"], "films": films[:10]})
+                print(f"    {c['name']}: {films[:10]}")
+            else:
+                print(f"    {c['name']}: aucun film identifié sur la page")
+
+        except Exception as e:
+            print(f"  Erreur cinéma {c['name']}: {e}")
+
+    if cinemas:
+        return {"ok": True, "cinemas": cinemas}
+
+    print("  Cinémas: jds.fr vide, tentative fallback Allociné")
+    return get_cinemas_allocine()
+
+def get_cinemas_allocine():
+    """Fallback: scrape Allociné pour les séances du jour à Annecy."""
     try:
         date_str = now.strftime("%Y-%m-%d")
         url = f"https://www.allocine.fr/seance/ville-15106/jour-{date_str}/"
         raw = fetch_html(url)
-        print(f"  Cinémas: page reçue ({len(raw)} chars)")
+        print(f"  Cinémas (Allociné): page reçue ({len(raw)} chars)")
 
         cinemas = []
-        seen_cinemas = set()
-
-        # Trouver chaque bloc cinéma
-        # Structure Allocine: <div class="theater-title"><a ...>Nom cinéma</a></div>
-        # puis les films dans <div class="movie-title"><a ...>Titre</a></div>
-
-        # Séparer par bloc cinéma
         cinema_blocks = re.split(r'<section[^>]*class="[^"]*theater[^"]*"', raw)
-
-        for block in cinema_blocks[1:]:  # skip avant le premier cinéma
-            # Nom du cinéma
-            cinema_match = re.search(r'<h2[^>]*class="[^"]*theater-name[^"]*"[^>]*>.*?<a[^>]*>([^<]+)</a>', block, re.DOTALL)
-            if not cinema_match:
-                cinema_match = re.search(r'class="[^"]*theater-name[^"]*"[^>]*>([^<]{3,60})', block)
+        for block in cinema_blocks[1:]:
+            cinema_match = re.search(r'class="[^"]*theater-name[^"]*"[^>]*>.*?<a[^>]*>([^<]+)</a>', block, re.DOTALL)
             if not cinema_match:
                 continue
-
             cinema_name = cinema_match.group(1).strip()
-            if cinema_name in seen_cinemas:
-                continue
-            seen_cinemas.add(cinema_name)
-
-            # Films dans ce cinéma
             films = []
-            seen_films = set()
-            film_matches = re.findall(r'class="[^"]*movie-title[^"]*"[^>]*>.*?<a[^>]*>([^<]{2,80})</a>', block, re.DOTALL)
-            for title in film_matches:
+            seen = set()
+            for title in re.findall(r'class="[^"]*movie-title[^"]*"[^>]*>.*?<a[^>]*>([^<]{2,80})</a>', block, re.DOTALL):
                 title = title.strip()
-                if title and title not in seen_films and len(title) > 2:
-                    seen_films.add(title)
+                if title and title not in seen and len(title) > 2:
+                    seen.add(title)
                     films.append(title)
-
             if films:
                 cinemas.append({"cinema": cinema_name, "films": films})
 
-        # Fallback: chercher directement les titres de films si structure différente
-        if not cinemas:
-            print("  Cinémas: structure non reconnue, tentative fallback offi.fr")
-            return get_cinemas_offi()
-
-        print(f"  Cinémas: {len(cinemas)} cinéma(s) trouvé(s)")
-        for c in cinemas:
-            print(f"    {c['cinema']}: {c['films']}")
-        return {"ok": True, "cinemas": cinemas}
-
-    except Exception as e:
-        print(f"  Erreur cinémas Allocine: {e}")
-        return get_cinemas_offi()
-
-def get_cinemas_offi():
-    """Fallback: scrape offi.fr pour les cinémas d'Annecy."""
-    try:
-        # Page cinémas Annecy sur offi.fr
-        date_str = now.strftime("%Y-%m-%d")
-        cinemas_offi = [
-            {"name": "Pathé Annecy",         "id": "cinema-pathe-annecy-3"},
-            {"name": "Le Splendid",            "id": "cinema-le-splendid-annecy"},
-            {"name": "Cinéma La Turbine",      "id": "cinema-la-turbine"},
-        ]
-
-        cinemas = []
-        for c in cinemas_offi:
-            try:
-                url = f"https://www.offi.fr/cinema/{c['id']}.html?date={date_str}"
-                raw = fetch_html(url)
-                films = []
-                seen = set()
-                # Extraire titres de films
-                blocs = re.split(r'</?h[23][^>]*>', raw)
-                mots_ignorer = ["programme", "réservation", "accueil", "cinéma",
-                                "cookies", "connexion", "prochainement", "newsletter"]
-                for bloc in blocs:
-                    m = re.search(r'<a[^>]*>([^<]{2,70})</a>', bloc)
-                    if not m:
-                        continue
-                    titre = m.group(1).strip()
-                    if any(mot in titre.lower() for mot in mots_ignorer):
-                        continue
-                    if len(titre) < 3 or len(titre) > 70:
-                        continue
-                    if titre not in seen:
-                        seen.add(titre)
-                        films.append(titre)
-                if films:
-                    cinemas.append({"cinema": c["name"], "films": films[:8]})
-            except Exception as e:
-                print(f"    offi.fr {c['name']}: {e}")
-
         if cinemas:
             return {"ok": True, "cinemas": cinemas}
-
-        # Dernier fallback: page générale Annecy
-        raw = fetch_html(f"https://www.allocine.fr/seance/ville-15106/")
-        films = []
-        seen = set()
-        for m in re.finditer(r'data-title="([^"]{2,80})"', raw):
-            t = m.group(1).strip()
-            if t not in seen:
-                seen.add(t)
-                films.append(t)
-        if films:
-            return {"ok": True, "cinemas": [{"cinema": "Annecy", "films": films[:10]}]}
-
         return {"ok": False, "cinemas": []}
     except Exception as e:
-        print(f"  Erreur cinémas offi: {e}")
+        print(f"  Erreur cinémas Allociné: {e}")
         return {"ok": False, "cinemas": []}
 
 # ── Génération HTML ────────────────────────────────────────────────────────────
