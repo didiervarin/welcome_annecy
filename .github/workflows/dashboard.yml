@@ -1,0 +1,53 @@
+name: Dashboard Annecy
+ 
+on:
+  schedule:
+    # Toutes les 30 minutes, entre 6h et 23h UTC (8h-1h heure Paris)
+    - cron: '0,30 6-23 * * *'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  repository_dispatch:
+    types: [manual-refresh]
+ 
+permissions:
+  contents: write
+ 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+ 
+    steps:
+      - name: Checkout du repo
+        uses: actions/checkout@v5
+ 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+ 
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+ 
+      - name: Générer le dashboard
+        run: python generate.py
+ 
+      - name: Sauvegarder et maintenir le cron actif
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          echo "$(date -u '+%Y-%m-%d %H:%M')" > .last_run
+          git add .last_run
+          git commit -m "dashboard $(date -u '+%H:%M')" || true
+          git push origin main || true
+ 
+      - name: Déployer sur GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: docs
+          branch: gh-pages
+          commit-message: "Dashboard Annecy mis à jour"
+ 
