@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="refresh" content="1800">
+  <title>Annecy · Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg:#0d0d0f; --surface:#141416; --surface2:#1a1a1d;
+      --border:rgba(255,255,255,0.07); --border2:rgba(255,255,255,0.12);
+      --text:#f0ede6; --muted:#6b6860;
+      --accent:#e8d5a3; --accent2:#7ec8c8;
+      --green:#4eba8a; --red:#e05c5c; --orange:#e8923a; --blue:#5b9bd5;
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0 }
+    html { -webkit-text-size-adjust:100% }
+    body {
+      font-family:'Syne',sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh;
+      padding: env(safe-area-inset-top,16px) 14px env(safe-area-inset-bottom,16px);
+    }
+
+    /* ── Header ── */
+    .header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:18px; padding-bottom:12px;
+      border-bottom:1px solid var(--border);
+    }
+    .header-title { font-family:'DM Mono',monospace; font-size:20px; letter-spacing:.05em }
+    .header-sub { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:3px; letter-spacing:.04em }
+    .header-time { font-family:'DM Mono',monospace; font-size:20px; text-align:right }
+    .header-date { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:3px; text-align:right }
+
+    /* ── Grid ── */
+    .grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px; max-width:900px;
+    }
+    @media(max-width:500px) { .grid { grid-template-columns:1fr } }
+
+    .card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:12px; padding:14px; overflow:hidden;
+    }
+    .card.full { grid-column:1/-1 }
+
+    .card-label {
+      font-family:'DM Mono',monospace; font-size:8px;
+      letter-spacing:.18em; color:var(--muted); text-transform:uppercase;
+      margin-bottom:12px;
+      display:flex; align-items:center; gap:6px;
+    }
+    .card-label::after { content:''; flex:1; height:1px; background:var(--border) }
+
+    /* ── Météo ── */
+    .meteo-main {
+      display:flex; align-items:center; gap:14px;
+      margin-bottom:12px;
+    }
+    .meteo-icon { font-size:48px; line-height:1; flex-shrink:0 }
+    .meteo-temp-block { flex:1 }
+    .meteo-temp {
+      font-family:'DM Serif Display',serif; font-size:48px; line-height:1;
+    }
+    .meteo-temp sup {
+      font-size:20px; vertical-align:super;
+      color:var(--muted); font-family:'Syne',sans-serif; font-weight:400;
+    }
+    .meteo-desc { font-size:13px; font-weight:600; margin-top:4px; color:var(--accent) }
+    .meteo-feels { font-size:11px; color:var(--muted); margin-top:2px }
+    .meteo-minmax {
+      display:flex; flex-direction:column; gap:4px;
+      font-family:'DM Mono',monospace; font-size:14px;
+      align-items:flex-end; flex-shrink:0;
+    }
+    .temp-max { color:var(--orange); font-weight:600 }
+    .temp-min { color:var(--accent2); font-weight:600 }
+    .meteo-rain { color:var(--blue); font-size:12px }
+
+    .lac-block {
+      display:flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:8px;
+      background:rgba(126,200,200,0.08); border:1px solid rgba(126,200,200,0.15);
+    }
+    .lac-icon { font-size:20px }
+    .lac-label { font-size:12px; color:var(--muted); flex:1 }
+    .lac-temp {
+      font-family:'DM Serif Display',serif; font-size:24px;
+      color:var(--accent2);
+    }
+    .lac-na .lac-temp { color:var(--muted); font-size:16px }
+
+    /* ── News ── */
+    .news-list {
+      display:flex; flex-direction:column; gap:0;
+      max-height:380px; overflow-y:auto;
+    }
+    .news-list::-webkit-scrollbar { width:4px }
+    .news-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px }
+
+    .news-item {
+      display:block; text-decoration:none; color:inherit;
+      padding:9px 0;
+      border-bottom:1px solid var(--border);
+      transition:background .15s;
+    }
+    .news-item:last-child { border-bottom:none }
+    .news-item:hover { background:var(--surface2); margin:0 -14px; padding:9px 14px; border-radius:4px }
+    .news-title {
+      font-size:13px; font-weight:600; line-height:1.4;
+      color:var(--text);
+    }
+    .news-summary {
+      font-size:11px; color:var(--muted); margin-top:3px; line-height:1.4;
+    }
+
+    /* ── Cinémas ── */
+    .cinema-list { display:flex; flex-direction:column; gap:4px }
+    .cinema-name {
+      font-family:'DM Mono',monospace; font-size:9px;
+      color:var(--accent); letter-spacing:.12em; text-transform:uppercase;
+      margin-top:10px; margin-bottom:4px;
+      padding-bottom:4px; border-bottom:1px solid var(--border);
+    }
+    .cinema-name:first-child { margin-top:0 }
+    .cinema-film {
+      font-size:13px; font-weight:500; color:var(--text);
+      padding:4px 0; border-bottom:1px solid var(--border);
+    }
+    .cinema-film:last-of-type { border-bottom:none }
+
+    /* ── Erreur ── */
+    .error { color:var(--red); font-size:11px; font-family:'DM Mono',monospace; padding:4px 0 }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top:16px; max-width:900px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .footer-info { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:.04em }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <div class="header-title">📍 Annecy</div>
+      <div class="header-sub">Vendredi 19 juin 2026</div>
+    </div>
+    <div>
+      <div class="header-time">15h36</div>
+      <div class="header-date">màj toutes les 30 min</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Météo -->
+    <div class="card">
+      <div class="card-label">Météo · Annecy</div>
+      
+    <div class="meteo-main">
+      <div class="meteo-icon">🌤️</div>
+      <div class="meteo-temp-block">
+        <div class="meteo-temp">33<sup>°C</sup></div>
+        <div class="meteo-desc">Peu nuageux</div>
+        <div class="meteo-feels">Ressenti 34°</div>
+      </div>
+      <div class="meteo-minmax">
+        <div class="temp-max">▲ 33°</div>
+        <div class="temp-min">▼ 20°</div>
+        <div class="meteo-rain">🌧 63%</div>
+      </div>
+    </div>
+    <div class="lac-block lac-na"><span class="lac-icon">🏊</span><span class="lac-label">Température du lac</span><span class="lac-temp">N/D</span></div>
+    </div>
+
+    <!-- News -->
+    <div class="card">
+      <div class="card-label">Actualités · Annecy</div>
+      <div class="news-list">
+        <a class="news-item" href="https://www.ledauphine.com/faits-divers-justice/2026/06/19/mediapart-epingle-edgar-grospiron-sur-ses-investissements-dans-des-societes" target="_blank" rel="noopener">
+          <div class="news-title">JO 2030. Mediapart épingle Edgar Grospiron sur ses investissements dans des sociétés</div>
+          <div class='news-summary'>Nouvelle peau de banane pour Edgar…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/jeux-olympiques/2026/06/19/val-d-isere-sera-bien-sur-la-carte-des-jo-alpes-2030" target="_blank" rel="noopener">
+          <div class="news-title">Jeux olympiques d'hiver. Val d’Isère en route pour les Alpes 2030</div>
+          <div class='news-summary'>Alors que la carte des sites doit être validée ce vendredi par le Cojop, après d’ultimes tractations, Val d’Isère devrait bien être au…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/politique/2026/06/19/financement-de-campagne-electorale-et-signature-de-contrats-pourquoi-le-maire-des-contamines-montjoie-a-fait-un-signalement-au-procureur" target="_blank" rel="noopener">
+          <div class="news-title">Haute-Savoie. Financement de campagne électorale et signature de contrats : pourquoi le maire des Contamines-Montjoie a fait un signalement au procureur</div>
+          <div class='news-summary'>Mercredi 17 juin, à la fin du conseil municipal, Basile Dunand a annoncé avoir effectué un signalement au procureur de la Républiques au…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/defense-guerre-conflit/2026/06/19/c-est-quoi-le-beau-velo-offert-aux-chefs-d-etat-du-g7" target="_blank" rel="noopener">
+          <div class="news-title">Haute-Savoie. « Ca ne nous a pas coûté grand-chose et ça fait de la pub pour tout le monde » : voici le beau vélo offert aux chefs d’État du G7</div>
+          <div class='news-summary'>Le Département de la Haute-Savoie, à l’origine de l’initiative, et le fabricant français Look qui a fourni les bicyclettes ne se sont pas…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/culture-loisirs/2026/06/19/trois-ans-apres-l-attaque-du-paquier-dale-turner-a-pris-le-depart-du-tour-du-mont-blanc" target="_blank" rel="noopener">
+          <div class="news-title">Haute-Savoie. Trois ans après l’attaque du Pâquier, Dale Turner a pris le départ du Tour du Mont-Blanc</div>
+          <div class='news-summary'>La première partie de son périple va durer 10 jours.</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/culture-loisirs/2026/06/19/que-faire-pour-la-fete-de-la-musique-dans-le-mont-blanc" target="_blank" rel="noopener">
+          <div class="news-title">Loisirs. Que faire pour la fête de la musique dans le Mont-Blanc ?</div>
+          <div class='news-summary'>Pour sa 45e édition (lancée en 1982), la fête de la musique s’apprête à faire vibrer le Pays du Mont-Blanc les 20 et 21 juin. De…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/faits-divers-justice/2026/06/18/gens-du-voyage-quelles-sont-les-trois-aires-de-grand-passage-designees-pour-l-ete" target="_blank" rel="noopener">
+          <div class="news-title">Haute-Savoie. Gens du voyage : quelles sont les trois aires de grand passage désignées pour l’été ?</div>
+          <div class='news-summary'>En matière d’accueil des gens du voyage, l’été est une période critique sujette à tension, ponctuée d’arrivées intempestives et bien…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/tour-de-france/2026/06/19/reconnaissances-a-l-alpe-d-huez-et-orcieres-des-corrections-mineures-quel-programme-pour-paul-seixas-apres-sa-chute" target="_blank" rel="noopener">
+          <div class="news-title">Tour de France 2026. Alpe d’Huez et Orcières, « corrections mineures » : quel programme pour Paul Seixas après sa chute ?</div>
+          <div class='news-summary'>Victime d’une lourde chute sur le Tour Auvergne-Rhône-Alpes samedi 13 juin, Paul Seixas débute ce vendredi à Arc 1950 (Savoie) son dernier…</div>
+        </a></div>
+    </div>
+
+    <!-- Cinémas -->
+    <div class="card full">
+      <div class="card-label">Cinémas · À l'affiche aujourd'hui</div>
+      <div class="error">Programmes cinéma indisponibles</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div class="footer-info">Générée le vendredi 19 juin 2026 à 15h36</div>
+    <div class="footer-info">Prochaine mise à jour dans ~24 min</div>
+  </div>
+
+</body>
+</html>
