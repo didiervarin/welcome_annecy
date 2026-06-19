@@ -59,29 +59,40 @@
     .card-label::after { content:''; flex:1; height:1px; background:var(--border) }
 
     /* ── Météo ── */
-    .meteo-main {
-      display:flex; align-items:center; gap:14px;
+    .meteo-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      align-items:center;
+      row-gap:8px;
       margin-bottom:12px;
     }
-    .meteo-icon { font-size:48px; line-height:1; flex-shrink:0 }
-    .meteo-temp-block { flex:1 }
+    .meteo-cell { min-width:0 }
+    .meteo-icon { font-size:44px; line-height:1; text-align:center }
     .meteo-temp {
-      font-family:'DM Serif Display',serif; font-size:48px; line-height:1;
+      font-family:'DM Serif Display',serif; font-size:44px; line-height:1;
+      text-align:center;
     }
     .meteo-temp sup {
-      font-size:20px; vertical-align:super;
+      font-size:18px; vertical-align:super;
       color:var(--muted); font-family:'Syne',sans-serif; font-weight:400;
     }
-    .meteo-desc { font-size:13px; font-weight:600; margin-top:4px; color:var(--accent) }
-    .meteo-feels { font-size:11px; color:var(--muted); margin-top:2px }
+    .meteo-rain-val {
+      font-family:'DM Serif Display',serif; font-size:44px; line-height:1;
+      color:var(--blue); text-align:center;
+    }
+    .meteo-rain-val sup {
+      font-size:18px; vertical-align:super;
+      color:var(--muted); font-family:'Syne',sans-serif; font-weight:400;
+    }
+    .meteo-lieu { font-size:13px; font-weight:600; letter-spacing:.03em; text-align:center }
+    .meteo-desc { font-size:13px; font-weight:600; color:var(--accent); text-align:center }
     .meteo-minmax {
-      display:flex; flex-direction:column; gap:4px;
-      font-family:'DM Mono',monospace; font-size:14px;
-      align-items:flex-end; flex-shrink:0;
+      display:flex; flex-direction:column; gap:2px;
+      font-family:'DM Mono',monospace; font-size:15px;
+      align-items:center;
     }
     .temp-max { color:var(--orange); font-weight:600 }
     .temp-min { color:var(--accent2); font-weight:600 }
-    .meteo-rain { color:var(--blue); font-size:12px }
 
     .lac-block {
       display:flex; align-items:center; gap:8px;
@@ -154,7 +165,7 @@
       <div class="header-sub">Vendredi 19 juin 2026</div>
     </div>
     <div>
-      <div class="header-time">15h55</div>
+      <div class="header-time">16h01</div>
       <div class="header-date">màj toutes les 30 min</div>
     </div>
   </div>
@@ -165,17 +176,16 @@
     <div class="card">
       <div class="card-label">Météo · Annecy</div>
       
-    <div class="meteo-main">
-      <div class="meteo-icon">🌤️</div>
-      <div class="meteo-temp-block">
-        <div class="meteo-temp">33<sup>°C</sup></div>
-        <div class="meteo-desc">Peu nuageux</div>
-        <div class="meteo-feels">Ressenti 33°</div>
-      </div>
-      <div class="meteo-minmax">
+    <div class="meteo-grid">
+      <div class="meteo-cell meteo-icon">🌤️</div>
+      <div class="meteo-cell meteo-temp"><span>33</span><sup>°C</sup></div>
+      <div class="meteo-cell meteo-rain-val"><span>63</span><sup>%</sup></div>
+
+      <div class="meteo-cell meteo-lieu">📍 Annecy</div>
+      <div class="meteo-cell meteo-desc">Peu nuageux</div>
+      <div class="meteo-cell meteo-minmax">
         <div class="temp-max">▲ 33°</div>
         <div class="temp-min">▼ 20°</div>
-        <div class="meteo-rain">🌧 63%</div>
       </div>
     </div>
     <div class="lac-block lac-na"><span class="lac-icon">🏊</span><span class="lac-label">Température du lac</span><span class="lac-temp">N/D</span></div>
@@ -228,8 +238,8 @@
   </div>
 
   <div class="footer">
-    <div class="footer-info">Générée le vendredi 19 juin 2026 à 15h55</div>
-    <div class="footer-info">Prochaine mise à jour dans ~5 min</div>
+    <div class="footer-info">Générée le vendredi 19 juin 2026 à 16h01</div>
+    <div class="footer-info">Prochaine mise à jour dans ~29 min</div>
   </div>
 
 </body>
