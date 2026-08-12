@@ -9,6 +9,7 @@ import urllib.request
 import urllib.error
 import os
 import re
+import html
 from datetime import datetime, timezone, timedelta
 
 # ── Timezone ──────────────────────────────────────────────────────────────────
@@ -166,62 +167,50 @@ def get_news():
         print(f"  Erreur news: {e}")
         return {"ok": False, "articles": []}
 
-# ── Cinémas Annecy (jds.fr - L'Officiel des Spectacles) ──────────────────────
-# Pages "salle" jds.fr pour les deux cinémas d'Annecy.
-JDS_CINEMAS = [
-    {"name": "Pathé Annecy",     "url": "https://www.jds.fr/annecy/cinema-sorties-films-horaires/cinema-pathe-27765_L"},
-    {"name": "Mégarama Annecy",  "url": "https://www.jds.fr/annecy/cinema-sorties-films-horaires/cinema-megarama-annecy-21446_L"},
+# ── Cinémas Annecy (AlloCiné - pages "séances" par salle) ────────────────────
+# Les pages jds.fr utilisées auparavant ne listent pas les films à l'affiche
+# (ce sont des pages d'annuaire, pas de programmation), et l'ancien fallback
+# Allociné pointait vers une URL /seance/ville-.../ qui n'existe plus.
+# On récupère directement les pages "séances" des deux salles d'Annecy.
+ALLOCINE_CINEMAS = [
+    {"name": "Pathé Annecy",     "code": "P0996"},
+    {"name": "Mégarama Annecy",  "code": "W7461"},
 ]
 
-# Mots/segments à exclure car ce sont des spectacles, concerts ou liens de nav,
-# pas des films de cinéma classique.
-_EXCLURE_CINEMA = [
-    "candlelight", "spectacle", "concert", "tournée", "humour", "cirque",
-    "danse", "ballet", "chanson française", "rock", "pop / folk", "jazz",
-    "spectacles |", "best of", "tribute", "hommage", "casse-noisette",
-    "festival hors pistes", "arcadium", "billetterie", "newsletter",
-    "publier un événement", "acheter des billets", "site internet",
-    "mentions légales", "à ne pas manquer", "lieux à proximité",
-    "idées sorties", "fête du lac", "bts au stade", "jenifer",
-]
+# Les fiches films sur AlloCiné pointent toutes vers une URL du type
+# /film/fichefilm_gen_cfilm=<id>.html — cibler ce motif permet d'extraire
+# uniquement de vrais titres de films, sans dépendre de classes CSS fragiles.
+_FILM_LINK_RE = re.compile(
+    r'<a[^>]+href="(?:https://www\.allocine\.fr)?/film/fichefilm_gen_cfilm=\d+\.html"[^>]*>([^<]{2,90})</a>'
+)
 
 def _titre_valide_film(titre):
     t = titre.strip()
-    if len(t) < 2 or len(t) > 80:
-        return False
-    tl = t.lower()
-    if any(mot in tl for mot in _EXCLURE_CINEMA):
-        return False
-    return True
+    return 2 <= len(t) <= 90
 
 def get_cinemas():
     """
-    Scrape les pages jds.fr (L'Officiel des Spectacles) des cinémas d'Annecy
+    Scrape les pages "séances" AlloCiné des cinémas d'Annecy (Pathé, Mégarama)
     pour récupérer les films actuellement à l'affiche.
     """
     cinemas = []
-    for c in JDS_CINEMAS:
+    for c in ALLOCINE_CINEMAS:
+        url = f"https://www.allocine.fr/seance/salle_gen_csalle={c['code']}.html"
         try:
-            raw = fetch_html(c["url"])
+            raw = fetch_html(url)
             print(f"  Cinémas: {c['name']} — page reçue ({len(raw)} chars)")
 
             films = []
             seen = set()
-
-            # Sur jds.fr, les films/séances apparaissent comme liens markdown
-            # du type [Titre](url) dans le bloc "Au programme" / "Films à l'affiche".
-            # On cible les liens vers des fiches /spectacles/ ou /films/ proches du nom du cinéma.
-            for m in re.finditer(r'\[([^\[\]]{2,80})\]\(https://www\.jds\.fr/annecy/(?:spectacles|cinema)[^\)]*\)', raw):
-                titre = m.group(1).strip()
-                # Nettoyer prefixe "Spectacles | "
-                titre = re.sub(r'^(Spectacles|Cinéma)\s*\|\s*', '', titre, flags=re.IGNORECASE).strip()
+            for m in _FILM_LINK_RE.finditer(raw):
+                titre = html.unescape(m.group(1)).strip()
                 if titre and titre not in seen and _titre_valide_film(titre):
                     seen.add(titre)
                     films.append(titre)
 
             if films:
-                cinemas.append({"cinema": c["name"], "films": films[:10]})
-                print(f"    {c['name']}: {films[:10]}")
+                cinemas.append({"cinema": c["name"], "films": films[:12]})
+                print(f"    {c['name']}: {films[:12]}")
             else:
                 print(f"    {c['name']}: aucun film identifié sur la page")
 
@@ -231,40 +220,8 @@ def get_cinemas():
     if cinemas:
         return {"ok": True, "cinemas": cinemas}
 
-    print("  Cinémas: jds.fr vide, tentative fallback Allociné")
-    return get_cinemas_allocine()
-
-def get_cinemas_allocine():
-    """Fallback: scrape Allociné pour les séances du jour à Annecy."""
-    try:
-        date_str = now.strftime("%Y-%m-%d")
-        url = f"https://www.allocine.fr/seance/ville-15106/jour-{date_str}/"
-        raw = fetch_html(url)
-        print(f"  Cinémas (Allociné): page reçue ({len(raw)} chars)")
-
-        cinemas = []
-        cinema_blocks = re.split(r'<section[^>]*class="[^"]*theater[^"]*"', raw)
-        for block in cinema_blocks[1:]:
-            cinema_match = re.search(r'class="[^"]*theater-name[^"]*"[^>]*>.*?<a[^>]*>([^<]+)</a>', block, re.DOTALL)
-            if not cinema_match:
-                continue
-            cinema_name = cinema_match.group(1).strip()
-            films = []
-            seen = set()
-            for title in re.findall(r'class="[^"]*movie-title[^"]*"[^>]*>.*?<a[^>]*>([^<]{2,80})</a>', block, re.DOTALL):
-                title = title.strip()
-                if title and title not in seen and len(title) > 2:
-                    seen.add(title)
-                    films.append(title)
-            if films:
-                cinemas.append({"cinema": cinema_name, "films": films})
-
-        if cinemas:
-            return {"ok": True, "cinemas": cinemas}
-        return {"ok": False, "cinemas": []}
-    except Exception as e:
-        print(f"  Erreur cinémas Allociné: {e}")
-        return {"ok": False, "cinemas": []}
+    print("  Cinémas: aucune donnée récupérée")
+    return {"ok": False, "cinemas": []}
 
 # ── Génération HTML ────────────────────────────────────────────────────────────
 def meteo_html(meteo, lac):
@@ -315,12 +272,12 @@ def news_html(news):
 def cinemas_html(data):
     if not data.get("ok") or not data.get("cinemas"):
         return '<div class="error">Programmes cinéma indisponibles</div>'
-    html = ""
+    html_out = ""
     for c in data["cinemas"]:
-        html += f'<div class="cinema-name">🎭 {c["cinema"]}</div>'
+        html_out += f'<div class="cinema-name">🎭 {c["cinema"]}</div>'
         for film in c["films"]:
-            html += f'<div class="cinema-film">🎬 {film}</div>'
-    return '<div class="cinema-list">' + html + '</div>'
+            html_out += f'<div class="cinema-film">🎬 {film}</div>'
+    return '<div class="cinema-list">' + html_out + '</div>'
 
 def build_html(meteo, lac, news, cinemas):
     MOIS_FR = ["janvier","février","mars","avril","mai","juin",
@@ -328,7 +285,7 @@ def build_html(meteo, lac, news, cinemas):
     JOURS_FR = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]
 
     jour = JOURS_FR[now.weekday()]
-    date_str = f"{now.day}\u202f{MOIS_FR[now.month-1]}\u202f{now.strftime('%Y')}"
+    date_str = f"{now.day} {MOIS_FR[now.month-1]} {now.strftime('%Y')}"
     heure_str = f"{now.strftime('%H')}h{now.strftime('%M')}"
 
     # Prochaine mise à jour (slots 00 et 30)
@@ -558,8 +515,8 @@ if __name__ == "__main__":
     cinemas = get_cinemas()
     print(f"    {cinemas}")
 
-    html = build_html(meteo, lac, news, cinemas)
+    html_doc = build_html(meteo, lac, news, cinemas)
     os.makedirs("docs", exist_ok=True)
     with open("docs/index.html", "w", encoding="utf-8") as f:
-        f.write(html)
+        f.write(html_doc)
     print("  ✓ docs/index.html généré")
