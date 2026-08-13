@@ -169,19 +169,25 @@ def get_news():
 
 # ── Cinémas Annecy (AlloCiné - pages "séances" par salle) ────────────────────
 # Les pages jds.fr utilisées auparavant ne listent pas les films à l'affiche
-# (ce sont des pages d'annuaire, pas de programmation), et l'ancien fallback
-# Allociné pointait vers une URL /seance/ville-.../ qui n'existe plus.
-# On récupère directement les pages "séances" des deux salles d'Annecy.
+# (ce sont des pages d'annuaire, pas de programmation), donc on récupère
+# directement les pages "séances" des salles d'Annecy.
+# 4Nemours (Les Nemours) affiché en premier, puis Pathé Annecy.
+# Mégarama Annecy a été retiré.
 ALLOCINE_CINEMAS = [
-    {"name": "Pathé Annecy",     "code": "P0996"},
-    {"name": "Mégarama Annecy",  "code": "W7461"},
+    {"name": "4Nemours",     "code": "P0526"},
+    {"name": "Pathé Annecy", "code": "P0996"},
 ]
+
+# Code "ville" AlloCiné pour Annecy, utilisé pour construire un lien de
+# séances par film (ex: /seance/film-<id>/pres-de-115435/).
+ANNECY_VILLE_ID = "115435"
 
 # Les fiches films sur AlloCiné pointent toutes vers une URL du type
 # /film/fichefilm_gen_cfilm=<id>.html — cibler ce motif permet d'extraire
-# uniquement de vrais titres de films, sans dépendre de classes CSS fragiles.
+# à la fois le titre et l'identifiant du film, sans dépendre de classes CSS
+# fragiles. L'identifiant sert à construire le lien vers les séances du film.
 _FILM_LINK_RE = re.compile(
-    r'<a[^>]+href="(?:https://www\.allocine\.fr)?/film/fichefilm_gen_cfilm=\d+\.html"[^>]*>([^<]{2,90})</a>'
+    r'<a[^>]+href="(?:https://www\.allocine\.fr)?/film/fichefilm_gen_cfilm=(\d+)\.html"[^>]*>([^<]{2,90})</a>'
 )
 
 def _titre_valide_film(titre):
@@ -190,8 +196,9 @@ def _titre_valide_film(titre):
 
 def get_cinemas():
     """
-    Scrape les pages "séances" AlloCiné des cinémas d'Annecy (Pathé, Mégarama)
-    pour récupérer les films actuellement à l'affiche.
+    Scrape les pages "séances" AlloCiné des cinémas d'Annecy (4Nemours, Pathé)
+    pour récupérer les films actuellement à l'affiche. Chaque film est associé
+    à un lien vers ses séances à Annecy, plutôt qu'à un simple titre statique.
     """
     cinemas = []
     for c in ALLOCINE_CINEMAS:
@@ -202,15 +209,18 @@ def get_cinemas():
 
             films = []
             seen = set()
-            for m in _FILM_LINK_RE.finditer(raw):
-                titre = html.unescape(m.group(1)).strip()
+            for film_id, titre_brut in _FILM_LINK_RE.findall(raw):
+                titre = html.unescape(titre_brut).strip()
                 if titre and titre not in seen and _titre_valide_film(titre):
                     seen.add(titre)
-                    films.append(titre)
+                    films.append({
+                        "titre": titre,
+                        "url": f"https://www.allocine.fr/seance/film-{film_id}/pres-de-{ANNECY_VILLE_ID}/",
+                    })
 
             if films:
                 cinemas.append({"cinema": c["name"], "films": films[:12]})
-                print(f"    {c['name']}: {films[:12]}")
+                print(f"    {c['name']}: {[f['titre'] for f in films[:12]]}")
             else:
                 print(f"    {c['name']}: aucun film identifié sur la page")
 
@@ -276,7 +286,8 @@ def cinemas_html(data):
     for c in data["cinemas"]:
         html_out += f'<div class="cinema-name">🎭 {c["cinema"]}</div>'
         for film in c["films"]:
-            html_out += f'<div class="cinema-film">🎬 {film}</div>'
+            titre = film["titre"].replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+            html_out += f'<a class="cinema-film" href="{film["url"]}" target="_blank" rel="noopener">🎬 {titre}</a>'
     return '<div class="cinema-list">' + html_out + '</div>'
 
 def build_html(meteo, lac, news, cinemas):
@@ -285,7 +296,7 @@ def build_html(meteo, lac, news, cinemas):
     JOURS_FR = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"]
 
     jour = JOURS_FR[now.weekday()]
-    date_str = f"{now.day} {MOIS_FR[now.month-1]} {now.strftime('%Y')}"
+    date_str = f"{now.day} {MOIS_FR[now.month-1]} {now.strftime('%Y')}"
     heure_str = f"{now.strftime('%H')}h{now.strftime('%M')}"
 
     # Prochaine mise à jour (slots 00 et 30)
@@ -436,9 +447,13 @@ def build_html(meteo, lac, news, cinemas):
     }}
     .cinema-name:first-child {{ margin-top:0 }}
     .cinema-film {{
+      display:block;
       font-size:13px; font-weight:500; color:var(--text);
+      text-decoration:none;
       padding:4px 0; border-bottom:1px solid var(--border);
+      transition:color .15s;
     }}
+    .cinema-film:hover {{ color:var(--accent) }}
     .cinema-film:last-of-type {{ border-bottom:none }}
 
     /* ── Erreur ── */
