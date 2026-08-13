@@ -141,9 +141,13 @@
     }
     .cinema-name:first-child { margin-top:0 }
     .cinema-film {
+      display:block;
       font-size:13px; font-weight:500; color:var(--text);
+      text-decoration:none;
       padding:4px 0; border-bottom:1px solid var(--border);
+      transition:color .15s;
     }
+    .cinema-film:hover { color:var(--accent) }
     .cinema-film:last-of-type { border-bottom:none }
 
     /* ── Erreur ── */
@@ -162,10 +166,10 @@
   <div class="header">
     <div>
       <div class="header-title">📍 Annecy</div>
-      <div class="header-sub">Jeudi 13 août 2026</div>
+      <div class="header-sub">Jeudi 13 août 2026</div>
     </div>
     <div>
-      <div class="header-time">09h27</div>
+      <div class="header-time">10h44</div>
       <div class="header-date">màj toutes les 30 min</div>
     </div>
   </div>
@@ -178,7 +182,7 @@
       
     <div class="meteo-grid">
       <div class="meteo-cell meteo-icon">☀️</div>
-      <div class="meteo-cell meteo-temp"><span>24</span><sup>°C</sup></div>
+      <div class="meteo-cell meteo-temp"><span>28</span><sup>°C</sup></div>
       <div class="meteo-cell meteo-rain-val"><span>8</span><sup>%</sup></div>
 
       <div class="meteo-cell meteo-lieu">📍 Annecy</div>
@@ -199,6 +203,22 @@
           <div class="news-title">En images. Éclipse solaire : revivez la soirée historique avec nos plus belles photos en Haute-Savoie et Savoie</div>
           <div class='news-summary'>Ce mercredi 12 août, le Soleil avait rendez-vous avec la Lune. Sur les cimes des Pays de Savoie, les curieux se sont massés pour admirer…</div>
         </a>
+        <a class="news-item" href="https://www.ledauphine.com/transport/2026/08/13/eclipse-solaire-plusieurs-heures-pour-redescendre-du-saleve-a-cause-de-bouchons-monstres" target="_blank" rel="noopener">
+          <div class="news-title">Haute-Savoie. Éclipse solaire : plusieurs heures pour redescendre du Salève à cause de bouchons monstres</div>
+          <div class='news-summary'>Certains diront que la soirée a été gâchée, d’autres évoquent un « gros bazar ».</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/societe/2026/08/13/expropriation-du-camping-du-lac-noir-la-famille-carrier-deboutee-de-ses-recours-contre-la-ville" target="_blank" rel="noopener">
+          <div class="news-title">Thonon-les-Bains. Expropriation du camping du Lac noir : la famille Carrier déboutée de ses recours contre la Ville</div>
+          <div class='news-summary'>La famille Carrier, propriétaire du camping du Lac noir à Thonon, a été déboutée par le tribunal administratif de Grenoble de trois…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/education/2026/08/13/a-la-fin-les-plus-reticents-plongent-au-fond-des-stages-pour-permettre-aux-enfants-de-vaincre-leur-peur-de-l-eau" target="_blank" rel="noopener">
+          <div class="news-title">Haute-Savoie. « À la fin, les plus réticents plongent au fond » : des stages pour permettre aux enfants de vaincre leur peur de l’eau</div>
+          <div class='news-summary'>Pour lutter contre les noyades en hausse cet été en France, l’État multiplie les actions de prévention. Pour la première fois, en…</div>
+        </a>
+        <a class="news-item" href="https://www.ledauphine.com/societe/2026/08/13/il-y-a-82-ans-les-deux-premieres-communes-du-departement-etaient-liberees" target="_blank" rel="noopener">
+          <div class="news-title">Haute-Savoie. Il y a 82 ans, les deux premières communes du département étaient libérées</div>
+          <div class='news-summary'>Le 16 août 1944, les communes de Machilly et Saint-Cergues ont été libérées du joug allemand. Une libération acharnée qui a coûté des vies…</div>
+        </a>
         <a class="news-item" href="https://www.ledauphine.com/faits-divers-justice/2026/08/12/accident-mortel-dans-le-massif-une-randonneuse-de-24-ans-devisse-dans-le-col-de-l-enclave" target="_blank" rel="noopener">
           <div class="news-title">Mont-Blanc. Deux accidents mortels dans le massif : une randonneuse de 24 ans et un speed rider sont décédés</div>
           <div class='news-summary'>Ce mercredi 12 août, les secouristes du peloton de gendarmerie de haute montagne (PGHM) de Chamonix, sont intervenus quatre fois dans le…</div>
@@ -210,36 +230,20 @@
         <a class="news-item" href="https://www.ledauphine.com/faits-divers-justice/2026/08/12/intervention-en-cours-au-lac-de-la-beunaz-apres-la-noyade-d-un-enfant-de-13-ans" target="_blank" rel="noopener">
           <div class="news-title">Haute-Savoie. Un enfant de 13 ans meurt noyé au lac de la Beunaz</div>
           <div class='news-summary'>Un enfant de 13 ans a été victime d’une noyade ce mercredi 12 août dans l’après-midi au lac de la Beunaz, sur les hauteurs de…</div>
-        </a>
-        <a class="news-item" href="https://www.ledauphine.com/faits-divers-justice/2026/08/12/au-gouter-des-alpinistes-evacues-par-helicoptere-a-leurs-frais" target="_blank" rel="noopener">
-          <div class="news-title">Haute-Savoie. 32 alpinistes demandent à être évacués gratuitement du Goûter : la descente en hélicoptère se fait à leurs frais</div>
-          <div class='news-summary'>Après la fermeture des refuges du Goûter et de Tête Rousse pour cause d’éboulements, Jean-Marc Peillex a dû gérer, ce mardi 12 août, une…</div>
-        </a>
-        <a class="news-item" href="https://www.ledauphine.com/faits-divers-justice/2026/08/12/marc-emmanuel-dufour-veut-que-le-montant-des-cagnottes-soit-reverse-a-des-associations-en-lien-avec-les-orphelins-des-pompiers" target="_blank" rel="noopener">
-          <div class="news-title">Haute-Savoie. Marc-Emmanuel Dufour veut que le montant des cagnottes soit reversé « à des associations en lien avec les orphelins des pompiers »</div>
-          <div class='news-summary'>Marc-Emmanuel Dufour a posté une vidéo de 9 minutes sur les réseaux sociaux ce mercredi 12 août.</div>
-        </a>
-        <a class="news-item" href="https://www.ledauphine.com/education/2026/08/13/a-la-fin-les-plus-reticents-plongent-au-fond-des-stages-pour-permettre-aux-enfants-de-vaincre-leur-peur-de-l-eau" target="_blank" rel="noopener">
-          <div class="news-title">Haute-Savoie. « À la fin, les plus réticents plongent au fond » : des stages pour permettre aux enfants de vaincre leur peur de l’eau</div>
-          <div class='news-summary'>Pour lutter contre les noyades en hausse cet été en France, l’État multiplie les actions de prévention. Pour la première fois, en…</div>
-        </a>
-        <a class="news-item" href="https://www.ledauphine.com/culture-loisirs/2026/08/13/thaumatrope-praxinoscope-des-ateliers-a-la-cite-du-cinema-ouvrent-les-coulisses-de-l-animation" target="_blank" rel="noopener">
-          <div class="news-title">Annecy. Thaumatrope, praxinoscope… : des ateliers à la Cité du cinéma ouvrent les coulisses de l’animation</div>
-          <div class='news-summary'>Cet été, la Cité du cinéma invite les familles et le grand public à découvrir les coulisses de l’animation à travers des ateliers créatifs.</div>
         </a></div>
     </div>
 
     <!-- Cinémas -->
     <div class="card full">
       <div class="card-label">Cinémas · À l'affiche aujourd'hui</div>
-      <div class="cinema-list"><div class="cinema-name">🎭 Pathé Annecy</div><div class="cinema-film">🎬 Tombé du ciel</div><div class="cinema-film">🎬 La fin d’Oak Street</div><div class="cinema-film">🎬 Juste pour une nuit</div><div class="cinema-film">🎬 Un grand raccourci</div><div class="cinema-film">🎬 Kyma, l’onde mystérieuse</div><div class="cinema-film">🎬 Les Gendarmes</div><div class="cinema-film">🎬 L'Odyssée</div><div class="cinema-film">🎬 Vaiana, la légende du bout du monde</div><div class="cinema-film">🎬 Spider-Man: Brand New Day</div><div class="cinema-film">🎬 La Pat' Patrouille : Le film mission Dino</div><div class="cinema-film">🎬 La Bataille de Gaulle - Partie 2 : J’écris ton nom</div><div class="cinema-film">🎬 Toy Story 5</div><div class="cinema-name">🎭 Mégarama Annecy</div><div class="cinema-film">🎬 Tombé du ciel</div><div class="cinema-film">🎬 La fin d’Oak Street</div><div class="cinema-film">🎬 De la Comédie-Française</div><div class="cinema-film">🎬 La Pat' Patrouille : Le film mission Dino</div><div class="cinema-film">🎬 Vaiana, la légende du bout du monde</div><div class="cinema-film">🎬 Spider-Man: Brand New Day</div><div class="cinema-film">🎬 Des Minions et des monstres</div><div class="cinema-film">🎬 L'Odyssée</div><div class="cinema-film">🎬 Les Gendarmes</div><div class="cinema-film">🎬 Toy Story 5</div><div class="cinema-film">🎬 La Bataille de Gaulle - Partie 2 : J’écris ton nom</div><div class="cinema-film">🎬 La Bataille de Gaulle - partie 1 : L'Âge de Fer</div></div>
+      <div class="cinema-list"><div class="cinema-name">🎭 4Nemours</div><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000024105/pres-de-115435/" target="_blank" rel="noopener">🎬 Soudain</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000013045/pres-de-115435/" target="_blank" rel="noopener">🎬 L'Odyssée</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000037046/pres-de-115435/" target="_blank" rel="noopener">🎬 De la Comédie-Française</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-294280/pres-de-115435/" target="_blank" rel="noopener">🎬 La Bataille de Gaulle - partie 1 : L'Âge de Fer</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-274108/pres-de-115435/" target="_blank" rel="noopener">🎬 Un petit air de famille</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-294281/pres-de-115435/" target="_blank" rel="noopener">🎬 La Bataille de Gaulle - Partie 2 : J’écris ton nom</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-925/pres-de-115435/" target="_blank" rel="noopener">🎬 Parade</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000023007/pres-de-115435/" target="_blank" rel="noopener">🎬 Des Fleurs pour Tokyo</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000031160/pres-de-115435/" target="_blank" rel="noopener">🎬 Le Triangle d'or</a><div class="cinema-name">🎭 Pathé Annecy</div><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000041528/pres-de-115435/" target="_blank" rel="noopener">🎬 Un grand raccourci</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000032856/pres-de-115435/" target="_blank" rel="noopener">🎬 Tombé du ciel</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-314503/pres-de-115435/" target="_blank" rel="noopener">🎬 La fin d’Oak Street</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000019899/pres-de-115435/" target="_blank" rel="noopener">🎬 Juste pour une nuit</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-276608/pres-de-115435/" target="_blank" rel="noopener">🎬 Spider-Man: Brand New Day</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000013045/pres-de-115435/" target="_blank" rel="noopener">🎬 L'Odyssée</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-294280/pres-de-115435/" target="_blank" rel="noopener">🎬 La Bataille de Gaulle - partie 1 : L'Âge de Fer</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000028234/pres-de-115435/" target="_blank" rel="noopener">🎬 Obsession</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000012952/pres-de-115435/" target="_blank" rel="noopener">🎬 Kyma, l’onde mystérieuse</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-1000022546/pres-de-115435/" target="_blank" rel="noopener">🎬 Les Gendarmes</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-314942/pres-de-115435/" target="_blank" rel="noopener">🎬 Vaiana, la légende du bout du monde</a><a class="cinema-film" href="https://www.allocine.fr/seance/film-320681/pres-de-115435/" target="_blank" rel="noopener">🎬 La Pat' Patrouille : Le film mission Dino</a></div>
     </div>
 
   </div>
 
   <div class="footer">
-    <div class="footer-info">Générée le jeudi 13 août 2026 à 09h27</div>
-    <div class="footer-info">Prochaine mise à jour dans ~3 min</div>
+    <div class="footer-info">Générée le jeudi 13 août 2026 à 10h44</div>
+    <div class="footer-info">Prochaine mise à jour dans ~16 min</div>
   </div>
 
 </body>
